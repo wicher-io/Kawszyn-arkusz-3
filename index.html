@@ -521,9 +521,38 @@
       display: none;
     }
 
-    .analysis-output textarea {
-      min-height: 220px;
+    .ai-response {
+      padding: 20px 22px;
+      border: 1px solid rgba(8, 23, 34, 0.14);
+      border-radius: 8px;
       background: #fbfbfa;
+      color: var(--green-900);
+      font-size: 15px;
+      line-height: 1.65;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .ai-response-label {
+      color: var(--green-800);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 3px solid rgba(8,23,34,0.15);
+      border-top-color: var(--green-800);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
 
     .char-counter {
@@ -606,7 +635,9 @@
 
       .summary-panel,
       .final-actions,
-      .status {
+      .status,
+      .main-flow > .panel:first-child,
+      .modules {
         display: none !important;
       }
 
@@ -616,14 +647,40 @@
         display: block;
       }
 
-      .panel,
-      .module {
+      .analysis-output {
+        display: block !important;
+      }
+
+      .analysis-output[hidden] {
+        display: block !important;
+      }
+
+      .ai-response {
+        border: none;
+        padding: 0;
+        font-size: 13px;
+        line-height: 1.7;
+      }
+
+      .ai-response-label {
+        font-size: 11px;
+        margin-bottom: 12px;
+        display: block;
+      }
+
+      .final-actions {
+        display: block !important;
         box-shadow: none;
-        break-inside: avoid;
-        margin-bottom: 16px;
+      }
+
+      .final-actions .actions-row,
+      .final-actions h2,
+      .final-actions .panel-subtitle {
+        display: none !important;
       }
     }
   </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
   <header class="topbar">
@@ -662,16 +719,15 @@
 
       <section class="panel final-actions" aria-labelledby="finish-title">
         <h2 id="finish-title">Zakończenie pracy</h2>
-        <p class="panel-subtitle">Po uzupełnieniu arkusza skopiuj gotowy prompt do AI. Prompt wymusi odpowiedź w pięciu blokach: wnioski o kliencie i personie, rekomendacje pod program szkoleniowy, gotowy program szkoleniowy, oferta sprzedażowa oraz język komunikacji dopasowany do persony.</p>
+        <p class="panel-subtitle">Po uzupełnieniu arkusza kliknij „Generuj analizę AI". Odpowiedź zostanie przygotowana w pięciu blokach: wnioski o kliencie i personie, rekomendacje pod program szkoleniowy, gotowy program szkoleniowy, oferta sprzedażowa oraz język komunikacji dopasowany do persony.</p>
         <div class="actions-row">
           <button class="button secondary" id="clearWorksheet" type="button">Wyczyść</button>
           <button class="button secondary" id="printWorksheet" type="button" disabled>Pobierz PDF</button>
-          <button class="button" id="copyAiMaterial" type="button">Generuj opis Ai</button>
+          <button class="button" id="copyAiMaterial" type="button">Generuj analizę AI</button>
         </div>
         <div class="analysis-output" id="analysisOutputWrap" hidden>
-          <label for="analysisOutput">Prompt przygotowany do AI</label>
-          <textarea id="analysisOutput" data-counted-textarea readonly></textarea>
-          <p class="char-counter" data-char-counter-for="analysisOutput">0 znaków</p>
+          <p class="ai-response-label">Analiza przygotowana przez AI</p>
+          <div class="ai-response" id="analysisOutput"></div>
         </div>
         <div class="status" id="status" role="status" aria-live="polite"></div>
       </section>
@@ -994,10 +1050,10 @@
     }
 
     function updatePrintButton() {
-      const hasPreparedMaterial = Boolean(analysisOutput.value.trim());
+      const hasPreparedMaterial = Boolean(analysisOutput.textContent.trim());
       printButton.disabled = !hasPreparedMaterial;
       printButton.setAttribute("aria-disabled", String(!hasPreparedMaterial));
-      printButton.title = hasPreparedMaterial ? "" : "PDF będzie dostępny po przygotowaniu materiału.";
+      printButton.title = hasPreparedMaterial ? "" : "PDF będzie dostępny po wygenerowaniu analizy.";
       analysisOutputWrap.hidden = !hasPreparedMaterial;
     }
 
@@ -1010,6 +1066,7 @@
           state[input.id] = input.value;
         }
       });
+      state["__aiResponse"] = analysisOutput.textContent;
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     }
 
@@ -1027,6 +1084,12 @@
           }
         }
       });
+
+      if (state["__aiResponse"]) {
+        analysisOutput.textContent = state["__aiResponse"];
+        analysisOutputWrap.hidden = false;
+        updatePrintButton();
+      }
     }
 
     function clearWorksheet() {
@@ -1041,13 +1104,13 @@
       });
 
       localStorage.removeItem(STORAGE_KEY);
-      analysisOutput.value = "";
+      analysisOutput.textContent = "";
       analysisOutputWrap.hidden = true;
       status.textContent = "Arkusz został wyczyszczony.";
       updateSummary();
     }
 
-    function collectAiMaterial() {
+    function buildPrompt() {
       const lines = [
         "PROMPT DO AI: WNIOSKI, PROGRAM SZKOLENIOWY I OFERTA SPRZEDAZOWA",
         "",
@@ -1120,28 +1183,37 @@
     }
 
     async function copyAiMaterial() {
-      const material = collectAiMaterial();
-      analysisOutput.value = material;
-      analysisOutputWrap.hidden = false;
-      updateCharacterCounters();
-      updatePrintButton();
+      const generateBtn = document.querySelector("#copyAiMaterial");
+      generateBtn.disabled = true;
+      generateBtn.innerHTML = '<span class="spinner"></span>Generuję…';
+      status.textContent = "Wysyłam dane do AI…";
+      analysisOutputWrap.hidden = true;
 
       try {
-        await navigator.clipboard.writeText(material);
-        status.textContent = "Prompt do AI został skopiowany.";
-      } catch (error) {
-        const fallback = document.createElement("textarea");
-        fallback.value = material;
-        fallback.setAttribute("readonly", "");
-        fallback.style.position = "fixed";
-        fallback.style.left = "-9999px";
-        document.body.appendChild(fallback);
-        fallback.select();
-        const copied = document.execCommand("copy");
-        fallback.remove();
-        status.textContent = copied
-          ? "Prompt do AI został skopiowany."
-          : "Prompt do AI został przygotowany poniżej.";
+        const prompt = buildPrompt();
+        const response = await fetch("/.netlify/functions/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Błąd serwera: ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (data.error) throw new Error(data.error);
+
+        analysisOutput.textContent = data.result;
+        analysisOutputWrap.hidden = false;
+        status.textContent = "Analiza AI gotowa.";
+        updatePrintButton();
+        saveState();
+      } catch (err) {
+        status.textContent = `Błąd: ${err.message}`;
+      } finally {
+        generateBtn.disabled = false;
+        generateBtn.textContent = "Generuj analizę AI";
       }
     }
 
@@ -1159,11 +1231,24 @@
     document.querySelector("#clearWorksheet").addEventListener("click", clearWorksheet);
     document.querySelector("#printWorksheet").addEventListener("click", () => {
       if (printButton.disabled) {
-        status.textContent = "PDF będzie dostępny po przygotowaniu materiału.";
+        status.textContent = "PDF będzie dostępny po wygenerowaniu analizy.";
         return;
       }
-      status.textContent = "Otwieram zapis do PDF.";
-      window.print();
+      status.textContent = "Przygotowuję PDF…";
+      const name = document.querySelector("#participantName").value.trim();
+      const filename = name ? `analiza-AI-${name}.pdf` : "analiza-AI-kawszyn.pdf";
+      const element = document.querySelector("#analysisOutput");
+      html2pdf()
+        .set({
+          margin: [15, 18, 15, 18],
+          filename,
+          image: { type: "jpeg", quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true },
+          jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+        })
+        .from(element)
+        .save()
+        .then(() => { status.textContent = "PDF zapisany."; });
     });
     document.querySelector("#copyAiMaterial").addEventListener("click", copyAiMaterial);
   </script>
