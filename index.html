@@ -1,0 +1,1171 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Arkusz materiałów do analizy AI - Kawszyn.pl</title>
+  <style>
+    :root {
+      --green-900: #081722;
+      --green-800: #102432;
+      --green-700: #1f3442;
+      --gold-500: #ffd90c;
+      --gold-400: #ffe766;
+      --soft: #f5f3ec;
+      --paper: #ffffff;
+      --muted: #5f6971;
+      --line: #d9dee2;
+      --shadow: 0 18px 60px rgba(8, 23, 34, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      color: var(--green-900);
+      background: var(--soft);
+      font-family: "Geist", "Inter", "Aptos", Arial, sans-serif;
+      line-height: 1.5;
+    }
+
+    button,
+    input,
+    textarea,
+    select {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .topbar {
+      background: var(--paper);
+      border-bottom: 5px solid var(--gold-500);
+      box-shadow: 0 8px 34px rgba(8, 23, 34, 0.08);
+    }
+
+    .topbar-inner {
+      width: min(1180px, calc(100% - 36px));
+      min-height: 118px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 22px 0;
+    }
+
+    .brand-lockup {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      width: min(306px, 42vw);
+      height: 48px;
+      object-fit: contain;
+      flex: 0 0 auto;
+    }
+
+    .title-block {
+      min-width: 0;
+    }
+
+    .eyebrow {
+      margin: 0 0 2px;
+      color: var(--green-700);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    h3 {
+      font-family: "Lora", Georgia, serif;
+      letter-spacing: 0;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(30px, 4vw, 52px);
+      line-height: 1.04;
+      font-weight: 600;
+    }
+
+    h2,
+    h3,
+    p {
+      overflow-wrap: anywhere;
+    }
+
+    .shell {
+      width: min(1180px, calc(100% - 36px));
+      margin: 28px auto 64px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 340px;
+      gap: 22px;
+      align-items: start;
+    }
+
+    .main-flow {
+      display: grid;
+      gap: 18px;
+      min-width: 0;
+    }
+
+    .panel,
+    .module,
+    .summary-panel {
+      background: var(--paper);
+      border: 1px solid rgba(8, 23, 34, 0.14);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .panel {
+      padding: 24px;
+    }
+
+    .panel h2,
+    .module h2,
+    .summary-panel h2 {
+      margin: 0;
+      color: var(--green-800);
+      font-size: 26px;
+      line-height: 1.2;
+      font-weight: 600;
+    }
+
+    .panel-subtitle {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .panel-subtitle:first-child {
+      margin-top: 0;
+    }
+
+    .fields-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .field {
+      display: grid;
+      gap: 7px;
+      min-width: 0;
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
+    label,
+    .label {
+      color: var(--green-800);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    input[type="text"],
+    input[type="date"],
+    textarea,
+    select {
+      width: 100%;
+      color: var(--green-900);
+      background: var(--paper);
+      border: 1px solid rgba(8, 23, 34, 0.24);
+      border-radius: 8px;
+      outline: none;
+      transition: border-color 140ms ease, box-shadow 140ms ease;
+    }
+
+    input[type="text"],
+    input[type="date"],
+    select {
+      min-height: 46px;
+      padding: 10px 12px;
+    }
+
+    textarea {
+      min-height: 96px;
+      resize: vertical;
+      padding: 12px;
+    }
+
+    textarea.analysis-textarea {
+      min-height: 210px;
+      line-height: 1.55;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: var(--green-700);
+      box-shadow: 0 0 0 4px rgba(255, 217, 12, 0.24);
+    }
+
+    .module {
+      overflow: hidden;
+    }
+
+    .module-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 22px 24px;
+      color: var(--paper);
+      background: var(--green-800);
+      border-bottom: 3px solid var(--gold-500);
+    }
+
+    .module-header h2 {
+      color: var(--paper);
+      font-size: 28px;
+    }
+
+    .module-kicker {
+      margin: 0 0 5px;
+      color: var(--gold-400);
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .module-question {
+      margin: 8px 0 0;
+      max-width: 680px;
+      color: rgba(255, 255, 255, 0.86);
+      font-size: 14px;
+    }
+
+    .module-index {
+      flex: 0 0 auto;
+      min-width: 72px;
+      padding: 9px 12px;
+      border: 1px solid rgba(255, 231, 102, 0.55);
+      border-radius: 8px;
+      text-align: center;
+      color: var(--gold-400);
+      font-weight: 800;
+    }
+
+    .module-body {
+      display: grid;
+      gap: 0;
+    }
+
+    .answer-block {
+      display: grid;
+      gap: 12px;
+      padding: 20px 24px;
+      border-bottom: 1px solid rgba(8, 23, 34, 0.12);
+    }
+
+    .answer-block:nth-child(even) {
+      background: rgba(8, 23, 34, 0.025);
+    }
+
+    .answer-block:last-child {
+      border-bottom: 0;
+    }
+
+    .answer-title {
+      margin: 0;
+      color: var(--green-800);
+      font-size: 15px;
+      font-weight: 900;
+    }
+
+    .option-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .choice {
+      display: grid;
+      grid-template-columns: 22px minmax(0, 1fr);
+      gap: 10px;
+      align-items: start;
+      padding: 12px;
+      border: 1px solid rgba(8, 23, 34, 0.14);
+      border-radius: 8px;
+      background: var(--paper);
+    }
+
+    .choice input {
+      width: 18px;
+      height: 18px;
+      margin-top: 2px;
+      accent-color: var(--gold-500);
+    }
+
+    .choice span {
+      color: var(--green-900);
+      font-size: 15px;
+    }
+
+    .range-wrap {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 62px;
+      gap: 14px;
+      align-items: center;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--gold-500);
+    }
+
+    .range-value {
+      min-height: 44px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(8, 23, 34, 0.18);
+      border-radius: 8px;
+      color: var(--green-800);
+      background: var(--paper);
+      font-family: Georgia, serif;
+      font-size: 22px;
+      font-weight: 800;
+    }
+
+    .module-note {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .summary-panel {
+      position: sticky;
+      top: 18px;
+      padding: 22px;
+    }
+
+    .summary-logo {
+      width: min(232px, 100%);
+      height: 52px;
+      object-fit: contain;
+      display: block;
+      margin-bottom: 12px;
+    }
+
+    .summary-panel h2 {
+      font-size: 24px;
+    }
+
+    .summary-meta {
+      margin: 8px 0 18px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .summary-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .summary-row {
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(8, 23, 34, 0.12);
+    }
+
+    .summary-top {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 7px;
+    }
+
+    .summary-name {
+      color: var(--green-900);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .summary-value {
+      color: var(--green-800);
+      font-size: 13px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 12px;
+      overflow: hidden;
+      border-radius: 8px;
+      background: rgba(8, 23, 34, 0.12);
+    }
+
+    .progress-fill {
+      width: 0;
+      height: 100%;
+      border-radius: 8px;
+      background: var(--gold-500);
+      transition: width 180ms ease;
+    }
+
+    .summary-box {
+      display: grid;
+      gap: 8px;
+      margin-top: 18px;
+      padding: 16px 14px;
+      border-radius: 8px;
+      color: var(--paper);
+      background: var(--green-800);
+    }
+
+    .summary-box-label {
+      color: var(--gold-400);
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .summary-box-text {
+      color: var(--paper);
+      font-size: 14px;
+      line-height: 1.3;
+    }
+
+    .final-actions .actions-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .button {
+      min-height: 46px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      padding: 12px 18px;
+      border: 2px solid transparent;
+      border-radius: 8px;
+      background: var(--gold-500);
+      color: var(--green-900);
+      font-weight: 800;
+      line-height: 1;
+      transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+    }
+
+    .button:hover {
+      background: var(--gold-400);
+      transform: translateY(-1px);
+      box-shadow: 0 10px 28px rgba(8, 23, 34, 0.16);
+    }
+
+    .button:disabled,
+    .button:disabled:hover {
+      opacity: 0.48;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .button.secondary {
+      color: var(--green-800);
+      background: transparent;
+      border-color: rgba(8, 23, 34, 0.36);
+    }
+
+    .button.secondary:hover {
+      color: var(--paper);
+      background: var(--green-800);
+      border-color: var(--green-800);
+    }
+
+    .button.secondary:disabled,
+    .button.secondary:disabled:hover {
+      color: var(--muted);
+      background: transparent;
+      border-color: rgba(8, 23, 34, 0.2);
+    }
+
+    .status {
+      min-height: 20px;
+      margin-top: 10px;
+      color: var(--green-700);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .analysis-output {
+      display: grid;
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    .analysis-output[hidden] {
+      display: none;
+    }
+
+    .analysis-output textarea {
+      min-height: 220px;
+      background: #fbfbfa;
+    }
+
+    .char-counter {
+      margin: -4px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-align: right;
+    }
+
+    @media (max-width: 980px) {
+      .shell {
+        grid-template-columns: 1fr;
+      }
+
+      .summary-panel {
+        position: static;
+        order: -1;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .topbar-inner {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .brand-lockup {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .brand-mark {
+        width: min(286px, 76vw);
+      }
+
+      .panel,
+      .summary-panel {
+        padding: 20px;
+      }
+
+      .fields-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .module-header {
+        flex-direction: column;
+        padding: 20px;
+      }
+
+      .module-index {
+        min-width: 0;
+      }
+
+      .answer-block {
+        padding: 18px 20px;
+      }
+
+      .range-wrap {
+        grid-template-columns: 1fr;
+      }
+
+      .range-value {
+        width: 78px;
+      }
+
+      .final-actions .actions-row {
+        justify-content: stretch;
+      }
+
+      .button {
+        width: 100%;
+      }
+    }
+
+    @media print {
+      body {
+        background: var(--paper);
+      }
+
+      .summary-panel,
+      .final-actions,
+      .status {
+        display: none !important;
+      }
+
+      .shell {
+        width: 100%;
+        margin: 0;
+        display: block;
+      }
+
+      .panel,
+      .module {
+        box-shadow: none;
+        break-inside: avoid;
+        margin-bottom: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand-lockup">
+        <img class="brand-mark" src="./kawszyn-logo.svg" alt="Logo Roman Kawszyn / al fianco">
+        <div class="title-block">
+          <p class="eyebrow">KAWSZYN.PL</p>
+          <h1>Arkusz materiałów do analizy AI</h1>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <div class="main-flow">
+      <section class="panel" aria-label="Informacje podstawowe">
+        <p class="panel-subtitle">Zbierz w jednym miejscu informacje, na podstawie których AI ma przygotować wnioski o kliencie i personie, rekomendacje szkoleniowe, program szkoleniowy, ofertę sprzedażową oraz język komunikacji dopasowany do persony.</p>
+        <div class="fields-grid">
+          <div class="field">
+            <label for="participantName">Imię</label>
+            <input id="participantName" name="participantName" type="text" autocomplete="name">
+          </div>
+          <div class="field">
+            <label for="participantRole">Rola</label>
+            <input id="participantRole" name="participantRole" type="text" placeholder="np. trener sprzedaży, konsultant, lider">
+          </div>
+          <div class="field">
+            <label for="participantDate">Data</label>
+            <input id="participantDate" name="participantDate" type="date">
+          </div>
+        </div>
+      </section>
+
+      <div class="modules" id="modules"></div>
+
+      <section class="panel final-actions" aria-labelledby="finish-title">
+        <h2 id="finish-title">Zakończenie pracy</h2>
+        <p class="panel-subtitle">Po uzupełnieniu arkusza skopiuj gotowy prompt do AI. Prompt wymusi odpowiedź w pięciu blokach: wnioski o kliencie i personie, rekomendacje pod program szkoleniowy, gotowy program szkoleniowy, oferta sprzedażowa oraz język komunikacji dopasowany do persony.</p>
+        <div class="actions-row">
+          <button class="button secondary" id="clearWorksheet" type="button">Wyczyść</button>
+          <button class="button secondary" id="printWorksheet" type="button" disabled>Pobierz PDF</button>
+          <button class="button" id="copyAiMaterial" type="button">Generuj opis Ai</button>
+        </div>
+        <div class="analysis-output" id="analysisOutputWrap" hidden>
+          <label for="analysisOutput">Prompt przygotowany do AI</label>
+          <textarea id="analysisOutput" data-counted-textarea readonly></textarea>
+          <p class="char-counter" data-char-counter-for="analysisOutput">0 znaków</p>
+        </div>
+        <div class="status" id="status" role="status" aria-live="polite"></div>
+      </section>
+    </div>
+
+    <aside class="summary-panel" aria-labelledby="summary-title">
+      <img class="summary-logo" src="./kawszyn-logo.svg" alt="Logo Roman Kawszyn / al fianco">
+      <h2 id="summary-title">Podsumowanie</h2>
+      <p class="summary-meta"><span id="completedCount">0</span> z <span id="totalCount">0</span> pól uzupełnionych</p>
+      <div class="summary-list" id="summaryList"></div>
+      <div class="summary-box">
+        <span class="summary-box-label">Aktualny status</span>
+        <span class="summary-box-text" id="statusSummary">Arkusz czeka na pierwsze odpowiedzi.</span>
+      </div>
+    </aside>
+  </main>
+
+  <script>
+    const STORAGE_KEY = "kawszyn-materialy-ai-v1";
+
+    const worksheet = [
+      {
+        id: "typowi-klienci",
+        kicker: "Sekcja 1",
+        title: "Typowi klienci",
+        description: "Wklej lub opisz informacje o klientach, z którymi najczęściej pracujesz: branże, stanowiska, problemy, potrzeby, poziom dojrzałości i sytuacje zakupowe.",
+        fields: [
+          {
+            id: "material",
+            type: "textarea"
+          }
+        ]
+      },
+      {
+        id: "programy-szkolen",
+        kicker: "Sekcja 2",
+        title: "Przykładowe programy szkoleń",
+        description: "Wklej programy, agendy, moduły, tematy warsztatów, opisy ćwiczeń albo szkice cykli szkoleniowych, które mają być rozpoznane przez AI.",
+        fields: [
+          {
+            id: "material",
+            type: "textarea"
+          }
+        ]
+      },
+      {
+        id: "tworzenie-ofert",
+        kicker: "Sekcja 3",
+        title: "Sposób tworzenia ofert",
+        description: "Opisz, jak powstaje oferta: co zbierasz od klienta, jak układasz propozycję, jak argumentujesz wartość i jak prezentujesz zakres współpracy.",
+        fields: [
+          {
+            id: "material",
+            type: "textarea"
+          }
+        ]
+      },
+      {
+        id: "jezyk-komunikacji",
+        kicker: "Sekcja 4",
+        title: "Preferowany język komunikacji",
+        description: "Zbierz słowa, frazy, ton i sposób mówienia, który najlepiej pasuje do marki, klientów oraz stylu pracy.",
+        fields: [
+          {
+            id: "material",
+            type: "textarea"
+          }
+        ]
+      },
+      {
+        id: "struktury-szkoleniowe",
+        kicker: "Sekcja 5",
+        title: "Ulubione struktury szkoleniowe",
+        description: "Opisz schematy, modele i sposoby prowadzenia szkoleń, które chcesz później wykorzystywać w analizie oraz tworzeniu materiałów.",
+        fields: [
+          {
+            id: "material",
+            type: "textarea"
+          }
+        ]
+      },
+      {
+        id: "standard-prezentacji",
+        kicker: "Sekcja 6",
+        title: "Standard prezentacji",
+        description: "Wklej zasady dotyczące slajdów, układu treści, długości prezentacji, poziomu szczegółowości i sposobu przedstawiania materiału.",
+        fields: [
+          {
+            id: "material",
+            type: "textarea"
+          }
+        ]
+      },
+      {
+        id: "styl-postow",
+        kicker: "Sekcja 7",
+        title: "Styl pisania postów",
+        description: "Zbierz przykłady i zasady dotyczące postów: długość, ton, konstrukcję, CTA, typ historii, argumentację i sposób wywoływania reakcji.",
+        fields: [
+          {
+            id: "material",
+            type: "textarea"
+          }
+        ]
+      }
+    ];
+
+    const modules = document.querySelector("#modules");
+    const summaryList = document.querySelector("#summaryList");
+    const completedCount = document.querySelector("#completedCount");
+    const totalCount = document.querySelector("#totalCount");
+    const statusSummary = document.querySelector("#statusSummary");
+    const status = document.querySelector("#status");
+    const analysisOutputWrap = document.querySelector("#analysisOutputWrap");
+    const analysisOutput = document.querySelector("#analysisOutput");
+    const printButton = document.querySelector("#printWorksheet");
+    const dateInput = document.querySelector("#participantDate");
+    const SECTION_TEXT_LIMIT = 5000;
+
+    const baseFields = [
+      "participantName",
+      "participantRole",
+      "participantDate"
+    ];
+
+    function fieldName(sectionId, fieldId, optionIndex) {
+      return optionIndex === undefined ? `${sectionId}-${fieldId}` : `${sectionId}-${fieldId}-${optionIndex}`;
+    }
+
+    function renderField(section, field) {
+      if (field.type === "checkbox" || field.type === "radio") {
+        const options = field.options.map((option, index) => {
+          const id = fieldName(section.id, field.id, index);
+          const name = field.type === "radio" ? fieldName(section.id, field.id) : id;
+          return `
+            <label class="choice" for="${id}">
+              <input id="${id}" name="${name}" type="${field.type}" value="${option}">
+              <span>${option}</span>
+            </label>
+          `;
+        }).join("");
+
+        return `
+          <div class="answer-block" data-required="${field.type}" data-field="${fieldName(section.id, field.id)}">
+            <p class="answer-title">${field.title}</p>
+            <div class="option-list">${options}</div>
+          </div>
+        `;
+      }
+
+      if (field.type === "select") {
+        const id = fieldName(section.id, field.id);
+        const options = field.options.map((option) => `<option value="${option}">${option}</option>`).join("");
+        return `
+          <div class="answer-block">
+            <label class="answer-title" for="${id}">${field.title}</label>
+            <select id="${id}" name="${id}">
+              <option value="">Wybierz</option>
+              ${options}
+            </select>
+          </div>
+        `;
+      }
+
+      if (field.type === "range") {
+        const id = fieldName(section.id, field.id);
+        return `
+          <div class="answer-block">
+            <label class="answer-title" for="${id}">${field.title}</label>
+            <div class="range-wrap">
+              <input id="${id}" name="${id}" type="range" min="${field.min}" max="${field.max}" value="${field.value}" data-range>
+              <span class="range-value" data-range-value="${id}">${field.value ? field.value : "—"}</span>
+            </div>
+            <p class="module-note">Skala ${field.displayMin || field.min}-${field.max}</p>
+          </div>
+        `;
+      }
+
+      const id = fieldName(section.id, field.id);
+      return `
+        <div class="answer-block">
+          <textarea class="analysis-textarea" id="${id}" name="${id}" maxlength="${SECTION_TEXT_LIMIT}" aria-label="${section.title}" data-counted-textarea data-char-limit="${SECTION_TEXT_LIMIT}"></textarea>
+          <p class="char-counter" data-char-counter-for="${id}">0 / ${SECTION_TEXT_LIMIT} znaków</p>
+        </div>
+      `;
+    }
+
+    function renderWorksheet() {
+      modules.innerHTML = worksheet.map((section, index) => `
+        <section class="module" aria-labelledby="${section.id}-title" data-section="${section.id}">
+          <div class="module-header">
+            <div>
+              <p class="module-kicker">${section.kicker}</p>
+              <h2 id="${section.id}-title">${section.title}</h2>
+              <p class="module-question">${section.description}</p>
+            </div>
+            <div class="module-index">${index + 1}/${worksheet.length}</div>
+          </div>
+          <div class="module-body">
+            ${section.fields.map((field) => renderField(section, field)).join("")}
+          </div>
+        </section>
+      `).join("");
+    }
+
+    function allInputs() {
+      return Array.from(document.querySelectorAll("input, textarea, select"));
+    }
+
+    function requiredGroups() {
+      const groups = [];
+      worksheet.forEach((section) => {
+        section.fields.forEach((field) => {
+          groups.push({ section, field });
+        });
+      });
+      baseFields.forEach((fieldId) => groups.push({ base: fieldId }));
+      return groups;
+    }
+
+    function isComplete(item) {
+      if (item.base) {
+        const element = document.querySelector(`#${item.base}`);
+        return Boolean(element && element.value.trim());
+      }
+
+      const { section, field } = item;
+      const id = fieldName(section.id, field.id);
+
+      if (field.type === "checkbox") {
+        return Boolean(document.querySelector(`input[id^="${id}-"]:checked`));
+      }
+
+      if (field.type === "radio") {
+        return Boolean(document.querySelector(`input[name="${id}"]:checked`));
+      }
+
+      const element = document.querySelector(`#${id}`);
+      if (field.type === "range") {
+        return Boolean(element && Number(element.value) > Number(element.min));
+      }
+
+      return Boolean(element && String(element.value).trim());
+    }
+
+    function sectionProgress(section) {
+      const items = section.fields.map((field) => ({ section, field }));
+      const done = items.filter(isComplete).length;
+      return { done, total: items.length };
+    }
+
+    function updateRangeLabels() {
+      document.querySelectorAll("[data-range]").forEach((range) => {
+        const label = document.querySelector(`[data-range-value="${range.id}"]`);
+        if (label) {
+          label.textContent = Number(range.value) > Number(range.min) ? range.value : "—";
+        }
+      });
+    }
+
+    function updateSummary() {
+      const groups = requiredGroups();
+      const done = groups.filter(isComplete).length;
+      completedCount.textContent = done;
+      totalCount.textContent = groups.length;
+
+      summaryList.innerHTML = worksheet.map((section) => {
+        const progress = sectionProgress(section);
+        const percent = progress.total ? Math.round((progress.done / progress.total) * 100) : 0;
+        return `
+          <div class="summary-row">
+            <div class="summary-top">
+              <span class="summary-name">${section.title}</span>
+              <span class="summary-value">${progress.done}/${progress.total}</span>
+            </div>
+            <div class="progress-track" aria-hidden="true">
+              <div class="progress-fill" style="width: ${percent}%"></div>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      if (done === 0) {
+        statusSummary.textContent = "Arkusz czeka na pierwsze odpowiedzi.";
+      } else if (done < groups.length) {
+        statusSummary.textContent = "Arkusz jest w trakcie uzupełniania.";
+      } else {
+        statusSummary.textContent = "Arkusz jest uzupełniony.";
+      }
+
+      updateRangeLabels();
+      updateCharacterCounters();
+      updatePrintButton();
+      saveState();
+    }
+
+    function characterLabel(count) {
+      if (count === 1) {
+        return "1 znak";
+      }
+
+      const lastDigit = count % 10;
+      const lastTwoDigits = count % 100;
+      const word = lastDigit >= 2 && lastDigit <= 4 && !(lastTwoDigits >= 12 && lastTwoDigits <= 14)
+        ? "znaki"
+        : "znaków";
+
+      return `${count} ${word}`;
+    }
+
+    function updateCharacterCounters() {
+      document.querySelectorAll("[data-counted-textarea]").forEach((textarea) => {
+        const counter = document.querySelector(`[data-char-counter-for="${textarea.id}"]`);
+        if (counter) {
+          const count = [...textarea.value].length;
+          const limit = textarea.dataset.charLimit;
+          counter.textContent = limit ? `${count} / ${limit} znaków` : characterLabel(count);
+        }
+      });
+    }
+
+    function updatePrintButton() {
+      const hasPreparedMaterial = Boolean(analysisOutput.value.trim());
+      printButton.disabled = !hasPreparedMaterial;
+      printButton.setAttribute("aria-disabled", String(!hasPreparedMaterial));
+      printButton.title = hasPreparedMaterial ? "" : "PDF będzie dostępny po przygotowaniu materiału.";
+      analysisOutputWrap.hidden = !hasPreparedMaterial;
+    }
+
+    function saveState() {
+      const state = {};
+      allInputs().forEach((input) => {
+        if (input.type === "checkbox" || input.type === "radio") {
+          state[input.id] = input.checked;
+        } else {
+          state[input.id] = input.value;
+        }
+      });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function loadState() {
+      const rawState = localStorage.getItem(STORAGE_KEY);
+      const state = rawState ? JSON.parse(rawState) : {};
+
+      allInputs().forEach((input) => {
+        if (Object.prototype.hasOwnProperty.call(state, input.id)) {
+          if (input.type === "checkbox" || input.type === "radio") {
+            input.checked = Boolean(state[input.id]);
+          } else {
+            const value = String(state[input.id]);
+            input.value = input.maxLength > -1 ? value.slice(0, input.maxLength) : value;
+          }
+        }
+      });
+    }
+
+    function clearWorksheet() {
+      allInputs().forEach((input) => {
+        if (input.type === "checkbox" || input.type === "radio") {
+          input.checked = false;
+        } else if (input.type === "range") {
+          input.value = input.defaultValue;
+        } else {
+          input.value = "";
+        }
+      });
+
+      localStorage.removeItem(STORAGE_KEY);
+      analysisOutput.value = "";
+      analysisOutputWrap.hidden = true;
+      status.textContent = "Arkusz został wyczyszczony.";
+      updateSummary();
+    }
+
+    function collectAiMaterial() {
+      const lines = [
+        "PROMPT DO AI: WNIOSKI, PROGRAM SZKOLENIOWY I OFERTA SPRZEDAZOWA",
+        "",
+        "ROLA AI",
+        "Działaj jak senior konsultant sprzedaży, projektant szkoleń i strateg komunikacji B2B.",
+        "Na podstawie materiałów z arkusza przygotuj praktyczne wnioski, program szkoleniowy oraz ofertę sprzedażową dopasowaną do klienta i persony.",
+        "",
+        "ZASADY ODPOWIEDZI",
+        "- Pisz po polsku.",
+        "- Wszystkie wnioski i propozycje oprzyj na tym, co znajduje się w materiale z arkusza oraz na sprawdzonych źródłach wskazanych w materiale.",
+        "- Używaj języka dopasowanego do opisanej persony klienta.",
+        "- Pisz konkretnie, profesjonalnie i sprzedażowo, bez pustych ogólników.",
+        "- Nie wymyślaj faktów, statystyk, nazw klientów, wyników ani efektów, których nie ma w materiale albo w sprawdzonych źródłach.",
+        "- Jeśli czegoś brakuje albo nie ma wiarygodnego źródła, pomiń ten element i generuj odpowiedź na podstawie dostępnych, sprawdzonych informacji.",
+        "- Korzystaj z preferowanego języka komunikacji, stylu prezentacji i stylu pisania postów, jeśli zostały opisane.",
+        "- Zachowaj dokładnie pięć głównych bloków odpowiedzi podanych niżej.",
+        "",
+        "OCZEKIWANY WYNIK",
+        "1. WNIOSKI O KLIENCIE I PERSONIE",
+        "- Kim jest typowy klient i jaka jest jego sytuacja.",
+        "- Jakie ma potrzeby, cele, motywacje, obawy i bariery zakupu.",
+        "- Jaki jezyk, argumenty i poziom szczegolowosci beda dla niego najbardziej przekonujace.",
+        "",
+        "2. REKOMENDACJE POD PROGRAM SZKOLENIOWY",
+        "- Najwazniejsze problemy, ktore szkolenie powinno rozwiazac.",
+        "- Priorytety merytoryczne.",
+        "- Rekomendowany format, poziom zaawansowania i rytm pracy.",
+        "- Elementy, ktore warto wykorzystac z dotychczasowych programow i struktur szkoleniowych.",
+        "",
+        "3. GOTOWY PROGRAM SZKOLENIOWY",
+        "- Tytul programu.",
+        "- Cel programu.",
+        "- Grupa docelowa.",
+        "- Proponowana struktura modulow.",
+        "- Opis kazdego modulu: temat, cel, kluczowe cwiczenia, efekt dla uczestnika.",
+        "- Rekomendowane materialy, zadania wdrozeniowe i follow-up.",
+        "",
+        "4. OFERTA SPRZEDAŻOWA DOPASOWANA DO KLIENTA",
+        "- Naglowek oferty.",
+        "- Krotkie otwarcie nawiazujace do sytuacji klienta.",
+        "- Diagnoza problemu klienta.",
+        "- Proponowane rozwiazanie.",
+        "- Zakres wspolpracy.",
+        "- Efekty biznesowe i rozwojowe.",
+        "- Argumenty wartosci dopasowane do persony.",
+        "- Sekcja: dlaczego ten program / dlaczego teraz.",
+        "- Proponowane CTA.",
+        "",
+        "5. JĘZYK KOMUNIKACJI DOPASOWANY DO PERSONY",
+        "- Słowa i sformułowania, które warto wykorzystać.",
+        "- Zwroty, których lepiej unikać.",
+        "- 3 przykładowe zdania ofertowe w stylu dopasowanym do persony.",
+        "",
+        "METRYCZKA",
+        `Imie: ${document.querySelector("#participantName").value || "-"}`,
+        `Rola: ${document.querySelector("#participantRole").value || "-"}`,
+        `Data: ${document.querySelector("#participantDate").value || "-"}`,
+        "",
+        "MATERIAL Z ARKUSZA",
+        ""
+      ];
+
+      worksheet.forEach((section) => {
+        const id = fieldName(section.id, "material");
+        const value = document.querySelector(`#${id}`)?.value || "-";
+        lines.push(section.title.toUpperCase(), value, "");
+      });
+
+      return lines.join("\n");
+    }
+
+    async function copyAiMaterial() {
+      const material = collectAiMaterial();
+      analysisOutput.value = material;
+      analysisOutputWrap.hidden = false;
+      updateCharacterCounters();
+      updatePrintButton();
+
+      try {
+        await navigator.clipboard.writeText(material);
+        status.textContent = "Prompt do AI został skopiowany.";
+      } catch (error) {
+        const fallback = document.createElement("textarea");
+        fallback.value = material;
+        fallback.setAttribute("readonly", "");
+        fallback.style.position = "fixed";
+        fallback.style.left = "-9999px";
+        document.body.appendChild(fallback);
+        fallback.select();
+        const copied = document.execCommand("copy");
+        fallback.remove();
+        status.textContent = copied
+          ? "Prompt do AI został skopiowany."
+          : "Prompt do AI został przygotowany poniżej.";
+      }
+    }
+
+    renderWorksheet();
+
+    loadState();
+    updateSummary();
+
+    document.addEventListener("input", updateSummary);
+    document.addEventListener("change", updateSummary);
+    document.addEventListener("paste", () => {
+      setTimeout(updateSummary, 0);
+    });
+
+    document.querySelector("#clearWorksheet").addEventListener("click", clearWorksheet);
+    document.querySelector("#printWorksheet").addEventListener("click", () => {
+      if (printButton.disabled) {
+        status.textContent = "PDF będzie dostępny po przygotowaniu materiału.";
+        return;
+      }
+      status.textContent = "Otwieram zapis do PDF.";
+      window.print();
+    });
+    document.querySelector("#copyAiMaterial").addEventListener("click", copyAiMaterial);
+  </script>
+</body>
+</html>
