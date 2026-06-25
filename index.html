@@ -733,6 +733,7 @@
       }
     }
   </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
@@ -1111,6 +1112,65 @@
       analysisOutputWrap.hidden = !hasPreparedMaterial;
     }
 
+    function renderMarkdown(text) {
+      if (window.marked?.parse) {
+        return window.marked.parse(text);
+      }
+
+      const lines = String(text || "").split(/\r?\n/);
+      let html = "";
+      let listOpen = false;
+
+      function closeList() {
+        if (listOpen) {
+          html += "</ul>";
+          listOpen = false;
+        }
+      }
+
+      lines.forEach((line) => {
+        const trimmed = line.trim();
+
+        if (!trimmed) {
+          closeList();
+          return;
+        }
+
+        if (trimmed.startsWith("### ")) {
+          closeList();
+          html += `<h3>${escapeHtml(trimmed.slice(4))}</h3>`;
+          return;
+        }
+
+        if (trimmed.startsWith("## ")) {
+          closeList();
+          html += `<h2>${escapeHtml(trimmed.slice(3))}</h2>`;
+          return;
+        }
+
+        if (trimmed.startsWith("# ")) {
+          closeList();
+          html += `<h1>${escapeHtml(trimmed.slice(2))}</h1>`;
+          return;
+        }
+
+        if (/^[-*]\s+/.test(trimmed)) {
+          if (!listOpen) {
+            html += "<ul>";
+            listOpen = true;
+          }
+          html += `<li>${escapeHtml(trimmed.replace(/^[-*]\s+/, ""))}</li>`;
+          return;
+        }
+
+        closeList();
+        html += `<p>${escapeHtml(trimmed)}</p>`;
+      });
+
+      closeList();
+      return html;
+    }
+
     function saveState() {
       const state = {};
       allInputs().forEach((input) => {
@@ -1140,7 +1200,7 @@
       });
 
       if (state["__aiResponse"]) {
-        analysisOutput.innerHTML = marked.parse(state["__aiResponse"]);
+        analysisOutput.innerHTML = renderMarkdown(state["__aiResponse"]);
         analysisOutput.dataset.raw = state["__aiResponse"];
         analysisOutputWrap.hidden = false;
         updatePrintButton();
@@ -1259,7 +1319,7 @@
         const data = await response.json();
         if (data.error) throw new Error(data.error);
 
-        analysisOutput.innerHTML = marked.parse(data.result);
+        analysisOutput.innerHTML = renderMarkdown(data.result);
         analysisOutput.dataset.raw = data.result;
         analysisOutputWrap.hidden = false;
         status.textContent = "Analiza AI gotowa.";
@@ -1281,6 +1341,16 @@
         .slice(0, 80);
     }
 
+    function escapeHtml(value) {
+      return String(value || "").replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      })[char]);
+    }
+
     function pdfText(value) {
       return String(value || "")
         .replace(/\u00a0/g, " ")
@@ -1290,6 +1360,63 @@
 
     function getPdfConstructor() {
       return window.jspdf?.jsPDF || window.jsPDF;
+    }
+
+    function openPrintableFallback(filename) {
+      const preview = window.open("", "_blank");
+      if (!preview) {
+        throw new Error("Przeglądarka zablokowała podgląd PDF. Zezwól na wyskakujące okna dla tego pliku i kliknij ponownie.");
+      }
+
+      const name = pdfText(document.querySelector("#participantName").value) || "-";
+      const role = pdfText(document.querySelector("#participantRole").value) || "-";
+      const date = pdfText(document.querySelector("#participantDate").value) || "-";
+
+      preview.document.open();
+      preview.document.write(`<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <title>${escapeHtml(filename)}</title>
+  <style>
+    @page { size: A4; margin: 16mm 18mm; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: #081722;
+      background: #ffffff;
+      font-family: Arial, sans-serif;
+      font-size: 11.5pt;
+      line-height: 1.45;
+    }
+    .brand { margin: 0 0 4px; color: #102432; font-size: 9pt; font-weight: 800; text-transform: uppercase; }
+    .title { margin: 0; color: #081722; font-family: Georgia, serif; font-size: 22pt; line-height: 1.15; }
+    .meta { margin: 7px 0 16px; color: #5f6971; font-size: 9.5pt; }
+    .rule { height: 4px; margin: 0 0 18px; background: #ffd90c; }
+    h1, h2, h3 { color: #102432; font-family: Georgia, serif; line-height: 1.2; page-break-after: avoid; }
+    h1 { margin: 20px 0 10px; font-size: 20pt; }
+    h2 { margin: 16px 0 8px; font-size: 16pt; }
+    h3 { margin: 13px 0 6px; font-size: 13pt; }
+    p { margin: 0 0 8px; }
+    ul, ol { margin: 6px 0 11px; padding-left: 22px; }
+    li { margin: 3px 0; }
+    header { page-break-after: avoid; }
+  </style>
+</head>
+<body>
+  <header>
+    <p class="brand">KAWSZYN.PL</p>
+    <h1 class="title">Analiza AI na podstawie arkusza</h1>
+    <p class="meta">Imię: ${escapeHtml(name)} | Rola: ${escapeHtml(role)} | Data: ${escapeHtml(date)}</p>
+    <div class="rule"></div>
+  </header>
+  <main>${analysisOutput.innerHTML}</main>
+  <script>
+    window.addEventListener("load", () => setTimeout(() => window.print(), 300));
+  <\/script>
+</body>
+</html>`);
+      preview.document.close();
     }
 
     function collectPdfBlocks() {
@@ -1576,21 +1703,24 @@
       return pages.map((item) => item.canvas);
     }
 
-    function downloadBlob(blob, filename) {
+    function deliverPdfBlob(blob, filename) {
       const url = URL.createObjectURL(blob);
+      const preview = window.open(url, "_blank");
       const link = document.createElement("a");
       link.href = url;
       link.download = filename;
       document.body.appendChild(link);
       link.click();
       link.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+      return preview ? "download-preview" : "download";
     }
 
     function saveCanvasPdf(filename) {
       const JsPDF = getPdfConstructor();
       if (!JsPDF) {
-        throw new Error("Nie udało się załadować modułu PDF. Odśwież stronę i spróbuj ponownie.");
+        openPrintableFallback(filename);
+        return "preview";
       }
 
       const canvases = buildPdfCanvases(collectPdfBlocks());
@@ -1608,7 +1738,7 @@
         throw new Error("PDF wyszedł pusty. Spróbuj odświeżyć stronę i wygenerować go ponownie.");
       }
 
-      downloadBlob(blob, filename);
+      return deliverPdfBlob(blob, filename);
     }
 
     renderWorksheet();
@@ -1634,8 +1764,14 @@
       const filename = name ? `analiza-AI-${name}.pdf` : "analiza-AI-kawszyn.pdf";
 
       try {
-        saveCanvasPdf(filename);
-        status.textContent = "PDF zapisany.";
+        const mode = saveCanvasPdf(filename);
+        if (mode === "preview") {
+          status.textContent = "Otworzyłem podgląd. W oknie drukowania wybierz „Zapisz jako PDF”.";
+        } else if (mode === "download-preview") {
+          status.textContent = "PDF gotowy. Otworzyłem podgląd i uruchomiłem pobieranie.";
+        } else {
+          status.textContent = "PDF gotowy. Jeśli pobieranie nie ruszyło, sprawdź blokadę pobierania w przeglądarce.";
+        }
       } catch (err) {
         status.textContent = `Nie udało się przygotować PDF: ${err.message}`;
       } finally {
