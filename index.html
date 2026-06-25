@@ -681,6 +681,7 @@
     }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
   <header class="topbar">
@@ -1086,7 +1087,8 @@
       });
 
       if (state["__aiResponse"]) {
-        analysisOutput.textContent = state["__aiResponse"];
+        analysisOutput.innerHTML = marked.parse(state["__aiResponse"]);
+        analysisOutput.dataset.raw = state["__aiResponse"];
         analysisOutputWrap.hidden = false;
         updatePrintButton();
       }
@@ -1204,7 +1206,8 @@
         const data = await response.json();
         if (data.error) throw new Error(data.error);
 
-        analysisOutput.textContent = data.result;
+        analysisOutput.innerHTML = marked.parse(data.result);
+        analysisOutput.dataset.raw = data.result;
         analysisOutputWrap.hidden = false;
         status.textContent = "Analiza AI gotowa.";
         updatePrintButton();
@@ -1237,16 +1240,20 @@
       status.textContent = "Przygotowuję PDF…";
       const name = document.querySelector("#participantName").value.trim();
       const filename = name ? `analiza-AI-${name}.pdf` : "analiza-AI-kawszyn.pdf";
-      const element = document.querySelector("#analysisOutput");
+
+      const wrapper = document.createElement("div");
+      wrapper.style.cssText = "font-family: Arial, sans-serif; font-size: 13px; line-height: 1.7; color: #081722; padding: 10px;";
+      wrapper.innerHTML = analysisOutput.innerHTML;
+
       html2pdf()
         .set({
           margin: [15, 18, 15, 18],
           filename,
           image: { type: "jpeg", quality: 0.98 },
-          html2canvas: { scale: 2, useCORS: true },
+          html2canvas: { scale: 2, useCORS: true, logging: false },
           jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
         })
-        .from(element)
+        .from(wrapper)
         .save()
         .then(() => { status.textContent = "PDF zapisany."; });
     });
