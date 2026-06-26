@@ -1358,8 +1358,38 @@
         .trim();
     }
 
+    function escapeRegExp(value) {
+      return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    }
+
     function getPdfConstructor() {
       return window.jspdf?.jsPDF || window.jsPDF;
+    }
+
+    function pdfMetaLine() {
+      return [
+        `Imie: ${pdfText(document.querySelector("#participantName").value) || "-"}`,
+        `Rola: ${pdfText(document.querySelector("#participantRole").value) || "-"}`,
+        `Data: ${pdfText(document.querySelector("#participantDate").value) || "-"}`
+      ].join(" | ");
+    }
+
+    function getPdfLogoImage() {
+      const logo = document.querySelector(".brand-mark");
+      if (!logo) {
+        return Promise.resolve(null);
+      }
+
+      if (logo.complete && logo.naturalWidth) {
+        return Promise.resolve(logo);
+      }
+
+      return new Promise((resolve) => {
+        const done = () => resolve(logo.complete && logo.naturalWidth ? logo : null);
+        logo.addEventListener("load", done, { once: true });
+        logo.addEventListener("error", () => resolve(null), { once: true });
+        setTimeout(done, 1200);
+      });
     }
 
     function openPrintableFallback(filename) {
@@ -1390,6 +1420,7 @@
       line-height: 1.45;
     }
     .brand { margin: 0 0 4px; color: #102432; font-size: 9pt; font-weight: 800; text-transform: uppercase; }
+    .logo { width: 52mm; height: auto; display: block; margin: 0 0 9mm; }
     .title { margin: 0; color: #081722; font-family: Georgia, serif; font-size: 22pt; line-height: 1.15; }
     .meta { margin: 7px 0 16px; color: #5f6971; font-size: 9.5pt; }
     .rule { height: 4px; margin: 0 0 18px; background: #ffd90c; }
@@ -1405,7 +1436,7 @@
 </head>
 <body>
   <header>
-    <p class="brand">KAWSZYN.PL</p>
+    <img class="logo" src="./kawszyn-logo.svg" alt="Roman Kawszyn / al fianco">
     <h1 class="title">Analiza AI na podstawie arkusza</h1>
     <p class="meta">Imię: ${escapeHtml(name)} | Rola: ${escapeHtml(role)} | Data: ${escapeHtml(date)}</p>
     <div class="rule"></div>
@@ -1421,62 +1452,67 @@
 
     function collectPdfBlocks() {
       const blocks = [];
-      const meta = [
-        `Imie: ${pdfText(document.querySelector("#participantName").value) || "-"}`,
-        `Rola: ${pdfText(document.querySelector("#participantRole").value) || "-"}`,
-        `Data: ${pdfText(document.querySelector("#participantDate").value) || "-"}`
-      ].join(" | ");
+      const sectionTitles = [
+        "WNIOSKI O KLIENCIE I PERSONIE",
+        "REKOMENDACJE POD PROGRAM SZKOLENIOWY",
+        "GOTOWY PROGRAM SZKOLENIOWY",
+        "OFERTA SPRZEDAŻOWA DOPASOWANA DO KLIENTA",
+        "JĘZYK KOMUNIKACJI DOPASOWANY DO PERSONY"
+      ];
+      let source = analysisOutput.dataset.raw || analysisOutput.innerText || analysisOutput.textContent || "";
 
-      blocks.push({ type: "brand", text: "KAWSZYN.PL" });
-      blocks.push({ type: "title", text: "Analiza AI na podstawie arkusza" });
-      blocks.push({ type: "meta", text: meta });
-      blocks.push({ type: "rule" });
+      sectionTitles.forEach((title, index) => {
+        const pattern = new RegExp(`\\s*(${index + 1}\\.\\s+${escapeRegExp(title)})\\s+`, "gi");
+        source = source.replace(pattern, `\n\n$1\n`);
+      });
+      source = source
+        .replace(/\s+(Moduł\s+\d+:\s*)/gi, "\n\n$1")
+        .replace(/\n{3,}/g, "\n\n");
 
-      function readElement(element) {
-        const tag = element.tagName?.toLowerCase();
-        const text = pdfText(element.innerText || element.textContent);
+      function pushParagraph(text) {
+        const clean = pdfText(text);
+        if (clean) {
+          blocks.push({ type: "p", text: clean });
+        }
+      }
+
+      source.split(/\n+/).forEach((line) => {
+        const text = pdfText(line);
 
         if (!text) {
           return;
         }
 
-        if (tag === "h1" || tag === "h2" || tag === "h3") {
-          blocks.push({ type: tag, text });
+        if (/^#{1,3}\s+/.test(text)) {
+          const level = text.match(/^#+/)[0].length;
+          blocks.push({ type: level === 1 ? "h1" : level === 2 ? "h2" : "h3", text: pdfText(text.replace(/^#{1,3}\s+/, "")) });
           return;
         }
 
-        if (tag === "ul" || tag === "ol") {
-          Array.from(element.children).forEach((child, index) => {
-            if (child.tagName?.toLowerCase() === "li") {
-              blocks.push({
-                type: "bullet",
-                marker: tag === "ol" ? `${index + 1}.` : "-",
-                text: pdfText(child.innerText || child.textContent)
-              });
-            }
-          });
+        if (/^[1-5]\.\s+/.test(text) && sectionTitles.some((title) => text.toUpperCase().includes(title))) {
+          blocks.push({ type: "h1", text });
           return;
         }
 
-        if (tag === "li") {
-          blocks.push({ type: "bullet", marker: "-", text });
+        if (/^[-*]\s+/.test(text)) {
+          blocks.push({ type: "bullet", marker: "-", text: pdfText(text.replace(/^[-*]\s+/, "")) });
           return;
         }
 
-        if (tag === "p" || tag === "blockquote" || tag === "pre") {
-          blocks.push({ type: "p", text });
+        if (/^\d+\.\s+/.test(text) && text.length < 130) {
+          blocks.push({ type: "h2", text });
           return;
         }
 
-        Array.from(element.children).forEach(readElement);
-        if (!element.children.length) {
-          blocks.push({ type: "p", text });
+        if (/^Moduł\s+\d+:/i.test(text)) {
+          blocks.push({ type: "h3", text });
+          return;
         }
-      }
 
-      Array.from(analysisOutput.children).forEach(readElement);
+        pushParagraph(text);
+      });
 
-      if (!blocks.some((block) => !["brand", "title", "meta", "rule"].includes(block.type))) {
+      if (!blocks.length) {
         throw new Error("Brak treści analizy do zapisania.");
       }
 
@@ -1524,15 +1560,67 @@
       return lines;
     }
 
-    function buildPdfCanvases(blocks) {
+    function buildPdfCanvases(blocks, logoImage) {
       const pageWidth = 1240;
       const pageHeight = 1754;
-      const marginX = 96;
-      const marginTop = 92;
-      const marginBottom = 92;
+      const marginX = 104;
+      const marginBottom = 112;
       const contentWidth = pageWidth - marginX * 2;
+      const firstBodyTop = 318;
+      const continuedBodyTop = 190;
       const pages = [];
       let page;
+
+      function drawLogoLockup(ctx, x, y, width) {
+        const logoRatio = 381.802 / 41;
+        const height = width / logoRatio;
+        if (logoImage) {
+          try {
+            ctx.drawImage(logoImage, x, y, width, height);
+            return height;
+          } catch {
+            // Fall through to the text lockup.
+          }
+        }
+
+        ctx.fillStyle = "#081722";
+        ctx.font = "800 30px Arial";
+        ctx.fillText("ROMAN KAWSZYN", x, y + 31);
+        ctx.fillStyle = "#ffd90c";
+        ctx.fillRect(x + 276, y, 7, 43);
+        ctx.fillStyle = "#081722";
+        ctx.font = "800 30px Arial";
+        ctx.fillText("al fianco®", x + 315, y + 31);
+        return 43;
+      }
+
+      function drawPageChrome(item, pageIndex) {
+        const { ctx } = item;
+        const isFirst = pageIndex === 0;
+        const logoWidth = isFirst ? 360 : 244;
+
+        drawLogoLockup(ctx, marginX, isFirst ? 70 : 58, logoWidth);
+
+        if (isFirst) {
+          ctx.fillStyle = "#081722";
+          ctx.font = "700 42px Georgia";
+          ctx.fillText("Analiza AI na podstawie arkusza", marginX, 178);
+          ctx.fillStyle = "#5f6971";
+          ctx.font = "400 19px Arial";
+          ctx.fillText(pdfMetaLine(), marginX, 236);
+          ctx.fillStyle = "#ffd90c";
+          ctx.fillRect(marginX, 282, contentWidth, 8);
+          return;
+        }
+
+        ctx.fillStyle = "#5f6971";
+        ctx.font = "700 17px Arial";
+        ctx.textAlign = "right";
+        ctx.fillText("Analiza AI na podstawie arkusza", pageWidth - marginX, 86);
+        ctx.textAlign = "left";
+        ctx.fillStyle = "#ffd90c";
+        ctx.fillRect(marginX, 130, contentWidth, 6);
+      }
 
       function newPage() {
         const canvas = document.createElement("canvas");
@@ -1541,7 +1629,7 @@
         const ctx = canvas.getContext("2d");
         ctx.fillStyle = "#ffffff";
         ctx.fillRect(0, 0, pageWidth, pageHeight);
-        return { canvas, ctx, y: marginTop };
+        return { canvas, ctx, y: pages.length ? continuedBodyTop : firstBodyTop };
       }
 
       function ensureSpace(height) {
@@ -1589,77 +1677,38 @@
       page = newPage();
 
       blocks.forEach((block) => {
-        if (block.type === "brand") {
-          drawWrapped(block.text, {
-            font: "800 18px Arial",
-            color: "#102432",
-            lineHeight: 24,
-            after: 6
-          });
-          return;
-        }
-
-        if (block.type === "title") {
-          drawWrapped(block.text, {
-            font: "700 40px Georgia",
-            color: "#081722",
-            lineHeight: 48,
-            after: 12,
-            minKeep: 96
-          });
-          return;
-        }
-
-        if (block.type === "meta") {
-          drawWrapped(block.text, {
-            font: "400 19px Arial",
-            color: "#5f6971",
-            lineHeight: 28,
-            after: 20
-          });
-          return;
-        }
-
-        if (block.type === "rule") {
-          ensureSpace(16);
-          page.ctx.fillStyle = "#ffd90c";
-          page.ctx.fillRect(marginX, page.y, contentWidth, 7);
-          page.y += 34;
-          return;
-        }
-
         if (block.type === "h1") {
           drawWrapped(block.text, {
-            font: "700 34px Georgia",
+            font: "700 29px Georgia",
             color: "#102432",
-            lineHeight: 43,
-            before: 24,
-            after: 12,
-            minKeep: 86
+            lineHeight: 37,
+            before: 22,
+            after: 10,
+            minKeep: 78
           });
           return;
         }
 
         if (block.type === "h2") {
           drawWrapped(block.text, {
-            font: "700 28px Georgia",
+            font: "700 25px Georgia",
             color: "#102432",
-            lineHeight: 36,
-            before: 18,
+            lineHeight: 33,
+            before: 16,
             after: 8,
-            minKeep: 72
+            minKeep: 66
           });
           return;
         }
 
         if (block.type === "h3") {
           drawWrapped(block.text, {
-            font: "700 23px Georgia",
+            font: "700 22px Georgia",
             color: "#102432",
-            lineHeight: 31,
+            lineHeight: 30,
             before: 14,
             after: 6,
-            minKeep: 62
+            minKeep: 58
           });
           return;
         }
@@ -1689,7 +1738,10 @@
       pages.push(page);
 
       pages.forEach((item, index) => {
+        drawPageChrome(item, index);
         const footerY = pageHeight - 54;
+        item.ctx.fillStyle = "#ffd90c";
+        item.ctx.fillRect(marginX, footerY - 38, 92, 5);
         item.ctx.fillStyle = "#d9dee2";
         item.ctx.fillRect(marginX, footerY - 28, contentWidth, 1);
         item.ctx.fillStyle = "#5f6971";
@@ -1716,14 +1768,14 @@
       return preview ? "download-preview" : "download";
     }
 
-    function saveCanvasPdf(filename) {
+    async function saveCanvasPdf(filename) {
       const JsPDF = getPdfConstructor();
       if (!JsPDF) {
         openPrintableFallback(filename);
         return "preview";
       }
 
-      const canvases = buildPdfCanvases(collectPdfBlocks());
+      const canvases = buildPdfCanvases(collectPdfBlocks(), await getPdfLogoImage());
       const pdf = new JsPDF({ unit: "mm", format: "a4", orientation: "portrait", compress: true });
 
       canvases.forEach((canvas, index) => {
@@ -1764,7 +1816,7 @@
       const filename = name ? `analiza-AI-${name}.pdf` : "analiza-AI-kawszyn.pdf";
 
       try {
-        const mode = saveCanvasPdf(filename);
+        const mode = await saveCanvasPdf(filename);
         if (mode === "preview") {
           status.textContent = "Otworzyłem podgląd. W oknie drukowania wybierz „Zapisz jako PDF”.";
         } else if (mode === "download-preview") {
